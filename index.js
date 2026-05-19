@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -52,7 +52,9 @@ async function run() {
           .find({
             availability: "Available",
           })
+          .limit(6)
           .toArray();
+
         res.status(200).send({
           success: true,
           message: "Successfully got available cars",
@@ -64,22 +66,41 @@ async function run() {
       }
     });
 
-    // get unavailable cars only
-    app.get("/cars/unavailable", async (req, res) => {
+    // get single car
+    app.get("/cars/:id", async (req, res) => {
       try {
-        const cars = await carsCollection
-          .find({
-            availability: "Unavailable",
-          })
-          .toArray();
-        res.status(200).send({
+        const { id } = req.params;
+
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid car id",
+          });
+        }
+
+        const car = await carsCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
+        
+        if (!car) {
+          return res.status(404).json({
+            success: false,
+            message: "Car not found",
+          });
+        }
+
+        res.status(200).json({
           success: true,
-          message: "Successfully got unavailable cars",
-          data: cars,
+          message: "Successfully got single car",
+          data: car,
         });
       } catch (error) {
         console.log(error.message);
-        res.status(500).json({ message: "Error fetching cars" });
+        res.status(500).json({
+          success: false,
+          message: "Error fetching single car",
+        });
       }
     });
 
@@ -90,11 +111,10 @@ async function run() {
       res.send(result);
     });
   } finally {
-   //  await client.close();
+    //  await client.close();
   }
 }
 run().catch(console.dir);
-
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
