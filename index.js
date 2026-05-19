@@ -20,7 +20,10 @@ const client = new MongoClient(uri, {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.status(200).json({
+    success: true,
+    message: "DriveFleet server is running",
+  });
 });
 
 async function run() {
@@ -28,24 +31,33 @@ async function run() {
     await client.connect();
 
     const db = client.db("driveFleetCarRental");
-    const carsCollection = db.collection("cars");
 
-    // get all cars
+    const carsCollection = db.collection("cars");
+    const bookingCollection = db.collection("booking");
+    const addedCarCollection = db.collection("addedCar");
+
+    // GET ALL CARS
     app.get("/cars", async (req, res) => {
       try {
         const cars = await carsCollection.find({}).toArray();
-        res.status(200).send({
+
+        res.status(200).json({
           success: true,
-          message: "Successfully got all cars",
+          message: "Successfully fetched all cars",
           data: cars,
         });
       } catch (error) {
         console.log(error.message);
-        res.status(500).json({ message: "Error fetching cars" });
+
+        res.status(500).json({
+          success: false,
+          message: "Failed to fetch cars",
+          error: error.message,
+        });
       }
     });
 
-    // get available cars only
+    // GET AVAILABLE CARS
     app.get("/cars/available", async (req, res) => {
       try {
         const cars = await carsCollection
@@ -55,18 +67,23 @@ async function run() {
           .limit(6)
           .toArray();
 
-        res.status(200).send({
+        res.status(200).json({
           success: true,
-          message: "Successfully got available cars",
+          message: "Successfully fetched available cars",
           data: cars,
         });
       } catch (error) {
         console.log(error.message);
-        res.status(500).json({ message: "Error fetching cars" });
+
+        res.status(500).json({
+          success: false,
+          message: "Failed to fetch available cars",
+          error: error.message,
+        });
       }
     });
 
-    // get single car
+    // GET SINGLE CAR
     app.get("/cars/:id", async (req, res) => {
       try {
         const { id } = req.params;
@@ -82,7 +99,6 @@ async function run() {
           _id: new ObjectId(id),
         });
 
-        
         if (!car) {
           return res.status(404).json({
             success: false,
@@ -92,28 +108,75 @@ async function run() {
 
         res.status(200).json({
           success: true,
-          message: "Successfully got single car",
+          message: "Successfully fetched single car",
           data: car,
         });
       } catch (error) {
         console.log(error.message);
+
         res.status(500).json({
           success: false,
-          message: "Error fetching single car",
+          message: "Failed to fetch single car",
+          error: error.message,
         });
       }
     });
 
-    // POST API to add a new car
-    app.post("/cars", async (req, res) => {
-      const newCar = req.body;
-      const result = await carsCollection.insertOne(newCar);
-      res.send(result);
+    // BOOK CAR
+    app.post("/car/book", async (req, res) => {
+      try {
+        const bookingData = req.body;
+
+        const result = await bookingCollection.insertOne(bookingData);
+
+        res.status(201).json({
+          success: true,
+          message: "Car booked successfully",
+          insertedId: result.insertedId,
+          data: bookingData,
+        });
+      } catch (error) {
+        console.log(error.message);
+
+        res.status(500).json({
+          success: false,
+          message: "Failed to book car",
+          error: error.message,
+        });
+      }
+    });
+
+
+   
+
+    // ADD NEW CAR
+    app.post("/car/add", async (req, res) => {
+      try {
+        const newCar = req.body;
+
+        const result = await carsCollection.insertOne(newCar);
+
+        res.status(201).json({
+          success: true,
+          message: "Successfully added new car",
+          insertedId: result.insertedId,
+          data: newCar,
+        });
+      } catch (error) {
+        console.log(error.message);
+
+        res.status(500).json({
+          success: false,
+          message: "Failed to add new car",
+          error: error.message,
+        });
+      }
     });
   } finally {
-    //  await client.close();
+    // await client.close();
   }
 }
+
 run().catch(console.dir);
 
 app.listen(port, () => {
