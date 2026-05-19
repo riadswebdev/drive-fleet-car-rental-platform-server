@@ -147,7 +147,44 @@ async function run() {
     });
 
 
-   
+    // GET ALL BOOKING CARS
+    app.get("/booking/:userId", async (req, res) => {
+      try {
+        const { userId } = req.params;
+
+        if (!ObjectId.isValid(userId)) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid car userId",
+          });
+        }
+
+        const car = await carsCollection.find({
+          _id: new ObjectId(userId),
+        });
+
+        if (!car) {
+          return res.status(404).json({
+            success: false,
+            message: "Car not found",
+          });
+        }
+
+        res.status(200).json({
+          success: true,
+          message: "Successfully fetched single car",
+          data: car,
+        });
+      } catch (error) {
+        console.log(error.message);
+
+        res.status(500).json({
+          success: false,
+          message: "Failed to fetch single car",
+          error: error.message,
+        });
+      }
+    });
 
     // ADD NEW CAR
     app.post("/car/add", async (req, res) => {
