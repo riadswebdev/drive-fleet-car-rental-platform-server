@@ -263,6 +263,29 @@ async function run() {
         });
       }
     });
+
+    // get all added car
+    app.get("/addedCar", async (req, res) => {
+     try {
+       const addedCars = await addedCarCollection.find({}).toArray();
+
+       res.status(200).json({
+         success: true,
+         message: "Successfully fetched all added cars",
+         data: addedCars,
+       });
+     } catch (error) {
+       console.log(error.message);
+       res.status(500).json({
+         success: false,
+         message: "Failed to fetch added cars",
+         error: error.message,
+       });
+     }
+    })
+
+
+
   } finally {
     // await client.close();
   }
