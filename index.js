@@ -266,24 +266,66 @@ async function run() {
 
     // get all added car
     app.get("/addedCar", async (req, res) => {
-     try {
-       const addedCars = await addedCarCollection.find({}).toArray();
+      try {
+        const addedCars = await addedCarCollection.find({}).toArray();
 
-       res.status(200).json({
-         success: true,
-         message: "Successfully fetched all added cars",
-         data: addedCars,
-       });
-     } catch (error) {
-       console.log(error.message);
-       res.status(500).json({
-         success: false,
-         message: "Failed to fetch added cars",
-         error: error.message,
-       });
-     }
-    })
+        res.status(200).json({
+          success: true,
+          message: "Successfully fetched all added cars",
+          data: addedCars,
+        });
+      } catch (error) {
+        console.log(error.message);
+        res.status(500).json({
+          success: false,
+          message: "Failed to fetch added cars",
+          error: error.message,
+        });
+      }
+    });
 
+    // update my added car
+    app.patch("/updateCar/:carId", async (req, res) => {
+      try {
+        const { carId } = req.params;
+        const updateCar = req.body;
+
+        const result = await addedCarCollection.updateOne(
+          { _id: new ObjectId(carId) },
+          {
+            $set: updateCar,
+          },
+        );
+
+        res.status(200).json({
+          success: true,
+          message: "Car updated successfully",
+          result,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Failed to update car",
+          error: error.message,
+        });
+      }
+    });
+
+    // delete users added car
+    app.delete("/added/:carId", async (req, res) => {
+      try {
+        const { carId } = req.params;
+        const result = await addedCarCollection.deleteOne({
+          _id: new ObjectId(carId),
+        });
+        res.status(200).json({ success: true, message: "Successfully delete" });
+      } catch (error) {
+        res.status(400).json({
+          success: false,
+          message: "Invalid car Id",
+        });
+      }
+    });
 
 
   } finally {
