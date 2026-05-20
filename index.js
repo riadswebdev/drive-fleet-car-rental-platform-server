@@ -146,7 +146,6 @@ async function run() {
       }
     });
 
-
     // GET ALL BOOKING CARS
     app.get("/booking/:userId", async (req, res) => {
       try {
@@ -182,6 +181,42 @@ async function run() {
           success: false,
           message: "Failed to fetch single car",
           error: error.message,
+        });
+      }
+    });
+
+    // search by title description category etc
+    app.get("/search", async (req, res) => {
+      const queryValue = req.query.query;
+
+      // empty search check
+      if (!queryValue) {
+        return res.status(400).json({
+          error: "Search query is required",
+        });
+      }
+
+      try {
+        const regex = new RegExp(queryValue, "i");
+
+        const results = await carsCollection
+          .find({
+            $or: [
+              { carName: regex },
+              { brand: regex },
+              { carType: regex },
+              { pickupLocation: regex },
+              { description: regex },
+              { availability: regex },
+            ],
+          })
+          .toArray();
+        res.status(200).json(results);
+      } catch (error) {
+        console.log(error);
+
+        res.status(500).json({
+          error: "Search failed",
         });
       }
     });
