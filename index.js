@@ -126,9 +126,14 @@ async function run() {
     app.post("/car/book", async (req, res) => {
       try {
         const bookingData = req.body;
-
+        console.log(bookingData, " booking data to backend server");
+        const { carId } = bookingData;
+        console.log(carId, "from booking api ");
+        await carsCollection.updateOne(
+          { _id: new ObjectId(carId) },
+          { $inc: { bookingCount: 1 } },
+        );
         const result = await bookingCollection.insertOne(bookingData);
-
         res.status(201).json({
           success: true,
           message: "Car booked successfully",
@@ -158,20 +163,22 @@ async function run() {
           });
         }
 
-        const car = await carsCollection.find({
-          _id: new ObjectId(userId),
-        });
+        const car = await bookingCollection
+          .find({
+            userId: userId,
+          })
+          .toArray();
 
         if (!car) {
           return res.status(404).json({
             success: false,
-            message: "Car not found",
+            message: "booking Car not found",
           });
         }
 
         res.status(200).json({
           success: true,
-          message: "Successfully fetched single car",
+          message: "Successfully fetched booking car",
           data: car,
         });
       } catch (error) {
@@ -179,8 +186,24 @@ async function run() {
 
         res.status(500).json({
           success: false,
-          message: "Failed to fetch single car",
+          message: "Failed to fetch booking car",
           error: error.message,
+        });
+      }
+    });
+
+    // delete booking car
+    app.delete("/booking/:carId", async (req, res) => {
+      try {
+        const { carId } = req.params;
+        const result = await bookingCollection.deleteOne({
+          _id: new ObjectId(carId),
+        });
+        res.status(200).json({ success: true, message: "Successfully delete" });
+      } catch (error) {
+        res.status(400).json({
+          success: false,
+          message: "Invalid car userId",
         });
       }
     });
@@ -198,7 +221,6 @@ async function run() {
 
       try {
         const regex = new RegExp(queryValue, "i");
-
         const results = await carsCollection
           .find({
             $or: [
@@ -211,7 +233,7 @@ async function run() {
             ],
           })
           .toArray();
-        res.status(200).json(results);
+        res.send(results);
       } catch (error) {
         console.log(error);
 
@@ -225,9 +247,7 @@ async function run() {
     app.post("/car/add", async (req, res) => {
       try {
         const newCar = req.body;
-
-        const result = await carsCollection.insertOne(newCar);
-
+        const result = await addedCarCollection.insertOne(newCar);
         res.status(201).json({
           success: true,
           message: "Successfully added new car",
@@ -236,7 +256,6 @@ async function run() {
         });
       } catch (error) {
         console.log(error.message);
-
         res.status(500).json({
           success: false,
           message: "Failed to add new car",
