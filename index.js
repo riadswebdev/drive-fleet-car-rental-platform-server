@@ -67,7 +67,10 @@ async function run() {
     addedCarCollection = db.collection("addedCar");
     console.log("DB collections initialized");
   } catch (err) {
-    console.error("DB initialization failed:", err && err.message ? err.message : err);
+    console.error(
+      "DB initialization failed:",
+      err && err.message ? err.message : err,
+    );
   }
 
   // GET ALL CARS
@@ -82,7 +85,10 @@ async function run() {
         data: cars,
       });
     } catch (error) {
-      console.error("GET /cars error:", error && error.message ? error.message : error);
+      console.error(
+        "GET /cars error:",
+        error && error.message ? error.message : error,
+      );
       res.status(500).json({
         success: false,
         message: "Failed to fetch cars",
@@ -106,7 +112,10 @@ async function run() {
         data: cars,
       });
     } catch (error) {
-      console.error("GET /cars/available error:", error && error.message ? error.message : error);
+      console.error(
+        "GET /cars/available error:",
+        error && error.message ? error.message : error,
+      );
       res.status(500).json({
         success: false,
         message: "Failed to fetch available cars",
@@ -144,7 +153,10 @@ async function run() {
         data: car,
       });
     } catch (error) {
-      console.error("GET /cars/:id error:", error && error.message ? error.message : error);
+      console.error(
+        "GET /cars/:id error:",
+        error && error.message ? error.message : error,
+      );
       res.status(500).json({
         success: false,
         message: "Failed to fetch single car",
@@ -159,9 +171,13 @@ async function run() {
       const bookingData = req.body;
       const { carId } = bookingData;
 
-      if (!carsCollection || !bookingCollection) throw new Error("Database not initialized");
+      if (!carsCollection || !bookingCollection)
+        throw new Error("Database not initialized");
 
-      await carsCollection.updateOne({ _id: new ObjectId(carId) }, { $inc: { bookingCount: 1 } });
+      await carsCollection.updateOne(
+        { _id: new ObjectId(carId) },
+        { $inc: { bookingCount: 1 } },
+      );
       const result = await bookingCollection.insertOne(bookingData);
       res.status(201).json({
         success: true,
@@ -170,7 +186,10 @@ async function run() {
         data: bookingData,
       });
     } catch (error) {
-      console.error("POST /car/book error:", error && error.message ? error.message : error);
+      console.error(
+        "POST /car/book error:",
+        error && error.message ? error.message : error,
+      );
       res.status(500).json({
         success: false,
         message: "Failed to book car",
@@ -201,7 +220,10 @@ async function run() {
         data: car,
       });
     } catch (error) {
-      console.error("GET /booking/:userId error:", error && error.message ? error.message : error);
+      console.error(
+        "GET /booking/:userId error:",
+        error && error.message ? error.message : error,
+      );
       res.status(500).json({
         success: false,
         message: "Failed to fetch booking car",
@@ -217,10 +239,15 @@ async function run() {
 
       if (!bookingCollection) throw new Error("Database not initialized");
 
-      const result = await bookingCollection.deleteOne({ _id: new ObjectId(carId) });
+      const result = await bookingCollection.deleteOne({
+        _id: new ObjectId(carId),
+      });
       res.status(200).json({ success: true, message: "Successfully delete" });
     } catch (error) {
-      console.error("DELETE /booking/:carId error:", error && error.message ? error.message : error);
+      console.error(
+        "DELETE /booking/:carId error:",
+        error && error.message ? error.message : error,
+      );
       res.status(400).json({
         success: false,
         message: "Invalid car userId",
@@ -254,7 +281,10 @@ async function run() {
         .toArray();
       res.send(results);
     } catch (error) {
-      console.error("GET /search error:", error && error.message ? error.message : error);
+      console.error(
+        "GET /search error:",
+        error && error.message ? error.message : error,
+      );
       res.status(500).json({
         error: "Search failed",
       });
@@ -276,7 +306,10 @@ async function run() {
         data: newCar,
       });
     } catch (error) {
-      console.error("POST /car/add error:", error && error.message ? error.message : error);
+      console.error(
+        "POST /car/add error:",
+        error && error.message ? error.message : error,
+      );
       res.status(500).json({
         success: false,
         message: "Failed to add new car",
@@ -292,7 +325,9 @@ async function run() {
 
       if (!addedCarCollection) throw new Error("Database not initialized");
 
-      const addedCars = await addedCarCollection.find({ userId: userId }).toArray();
+      const addedCars = await addedCarCollection
+        .find({ userId: userId })
+        .toArray();
 
       res.status(200).json({
         success: true,
@@ -300,7 +335,10 @@ async function run() {
         data: addedCars,
       });
     } catch (error) {
-      console.error("GET /addedCar/:userId error:", error && error.message ? error.message : error);
+      console.error(
+        "GET /addedCar/:userId error:",
+        error && error.message ? error.message : error,
+      );
       res.status(500).json({
         success: false,
         message: "Failed to fetch added cars",
@@ -317,7 +355,10 @@ async function run() {
 
       if (!addedCarCollection) throw new Error("Database not initialized");
 
-      const result = await addedCarCollection.updateOne({ _id: new ObjectId(carId) }, { $set: updateCar });
+      const result = await addedCarCollection.updateOne(
+        { _id: new ObjectId(carId) },
+        { $set: updateCar },
+      );
 
       res.status(200).json({
         success: true,
@@ -325,7 +366,10 @@ async function run() {
         result,
       });
     } catch (error) {
-      console.error("PATCH /updateCar/:carId error:", error && error.message ? error.message : error);
+      console.error(
+        "PATCH /updateCar/:carId error:",
+        error && error.message ? error.message : error,
+      );
       res.status(500).json({
         success: false,
         message: "Failed to update car",
@@ -341,10 +385,15 @@ async function run() {
 
       if (!addedCarCollection) throw new Error("Database not initialized");
 
-      const result = await addedCarCollection.deleteOne({ _id: new ObjectId(carId) });
+      const result = await addedCarCollection.deleteOne({
+        _id: new ObjectId(carId),
+      });
       res.status(200).json({ success: true, message: "Successfully delete" });
     } catch (error) {
-      console.error("DELETE /added/:carId error:", error && error.message ? error.message : error);
+      console.error(
+        "DELETE /added/:carId error:",
+        error && error.message ? error.message : error,
+      );
       res.status(400).json({
         success: false,
         message: "Invalid car Id",
