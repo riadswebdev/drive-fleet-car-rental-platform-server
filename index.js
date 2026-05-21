@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -25,6 +26,32 @@ app.get("/", (req, res) => {
     message: "DriveFleet server is running",
   });
 });
+
+const verifyToken = async (req, res, next) => {
+  const bearerToken = req.headers.authorization;
+  if (!bearerToken) {
+    return res.status(401).json({ success: false, message: "unauthorize" });
+  }
+  const token = bearerToken.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ success: false, message: "unauthorize" });
+  }
+
+  try {
+    const JWKS = createRemoteJWKSet(new URL(process.env.NEW_URL));
+    const { payload } = await jwtVerify(token, JWKS);
+    req.user = payload;
+    next();
+  } catch (error) {
+    console.error("Token validation failed", error.message);
+
+    return res.status(401).json({
+      success: false,
+      message: "Invalid token",
+    });
+  }
+};
 
 async function run() {
   try {
@@ -84,7 +111,7 @@ async function run() {
     });
 
     // GET SINGLE CAR
-    app.get("/cars/:id", async (req, res) => {
+    app.get("/cars/:id", verifyToken, async (req, res) => {
       try {
         const { id } = req.params;
 
@@ -123,12 +150,10 @@ async function run() {
     });
 
     // BOOK CAR
-    app.post("/car/book", async (req, res) => {
+    app.post("/car/book",verifyToken, async (req, res) => {
       try {
         const bookingData = req.body;
-        console.log(bookingData, " booking data to backend server");
         const { carId } = bookingData;
-        console.log(carId, "from booking api ");
         await carsCollection.updateOne(
           { _id: new ObjectId(carId) },
           { $inc: { bookingCount: 1 } },
@@ -152,16 +177,9 @@ async function run() {
     });
 
     // GET ALL BOOKING CARS
-    app.get("/booking/:userId", async (req, res) => {
+    app.get("/booking/:userId", verifyToken, async (req, res) => {
       try {
         const { userId } = req.params;
-
-        if (!ObjectId.isValid(userId)) {
-          return res.status(400).json({
-            success: false,
-            message: "Invalid car userId",
-          });
-        }
 
         const car = await bookingCollection
           .find({
@@ -169,7 +187,7 @@ async function run() {
           })
           .toArray();
 
-        if (!car) {
+        if (car.length === 0) {
           return res.status(404).json({
             success: false,
             message: "booking Car not found",
@@ -193,7 +211,7 @@ async function run() {
     });
 
     // delete booking car
-    app.delete("/booking/:carId", async (req, res) => {
+    app.delete("/booking/:carId", verifyToken, async (req, res) => {
       try {
         const { carId } = req.params;
         const result = await bookingCollection.deleteOne({
@@ -211,8 +229,6 @@ async function run() {
     // search by title description category etc
     app.get("/search", async (req, res) => {
       const queryValue = req.query.query;
-
-      // empty search check
       if (!queryValue) {
         return res.status(400).json({
           error: "Search query is required",
@@ -244,7 +260,7 @@ async function run() {
     });
 
     // ADD NEW CAR
-    app.post("/car/add", async (req, res) => {
+    app.post("/car/add", verifyToken, async (req, res) => {
       try {
         const newCar = req.body;
         const result = await addedCarCollection.insertOne(newCar);
@@ -265,9 +281,12 @@ async function run() {
     });
 
     // get all added car
-    app.get("/addedCar", async (req, res) => {
+    app.get("/addedCar/:userId", verifyToken, async (req, res) => {
       try {
-        const addedCars = await addedCarCollection.find({}).toArray();
+        const { userId } = req.params;
+        const addedCars = await addedCarCollection
+          .find({ userId: userId })
+          .toArray();
 
         res.status(200).json({
           success: true,
@@ -285,7 +304,7 @@ async function run() {
     });
 
     // update my added car
-    app.patch("/updateCar/:carId", async (req, res) => {
+    app.patch("/updateCar/:carId", verifyToken, async (req, res) => {
       try {
         const { carId } = req.params;
         const updateCar = req.body;
@@ -312,7 +331,7 @@ async function run() {
     });
 
     // delete users added car
-    app.delete("/added/:carId", async (req, res) => {
+    app.delete("/added/:carId", verifyToken, async (req, res) => {
       try {
         const { carId } = req.params;
         const result = await addedCarCollection.deleteOne({
@@ -326,8 +345,6 @@ async function run() {
         });
       }
     });
-
-
   } finally {
     // await client.close();
   }
