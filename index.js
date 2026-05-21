@@ -35,31 +35,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// const verifyToken = async (req, res, next) => {
-//   const bearerToken = req.headers.authorization;
-//   if (!bearerToken) {
-//     return res.status(401).json({ success: false, message: "unauthorize" });
-//   }
-//   const token = bearerToken.split(" ")[1];
-
-//   if (!token) {
-//     return res.status(401).json({ success: false, message: "unauthorize" });
-//   }
-
-//   try {
-//     const JWKS = createRemoteJWKSet(new URL(process.env.JWKS_URI));
-//     const { payload } = await jwtVerify(token, JWKS);
-//     req.user = payload;
-//     next();
-//   } catch (error) {
-//     console.error("Token validation failed", error.message);
-
-//     return res.status(401).json({
-//       success: false,
-//       message: "Invalid token",
-//     });
-//   }
-// };
 
 const verifyToken = async (req, res, next) => {
   try {
