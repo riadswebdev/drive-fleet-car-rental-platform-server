@@ -62,13 +62,12 @@ const verifyToken = async (req, res, next) => {
 };
 
 async function run() {
-  // Initialize collections if possible, but don't throw so routes are always registered
   let carsCollection;
   let bookingCollection;
   let addedCarCollection;
 
   try {
-    // await client.connect();
+    await client.connect();
     const db = client.db("driveFleetCarRental");
     carsCollection = db.collection("cars");
     bookingCollection = db.collection("booking");
@@ -207,7 +206,7 @@ async function run() {
   });
 
   // GET ALL BOOKING CARS
-  app.get("/booking/:userId", async (req, res) => {
+  app.get("/booking/:userId", verifyToken, async (req, res) => {
     try {
       const { userId } = req.params;
 
@@ -301,7 +300,7 @@ async function run() {
   });
 
   // ADD NEW CAR
-  app.post("/car/add", async (req, res) => {
+  app.post("/car/add", verifyToken, async (req, res) => {
     try {
       const newCar = req.body;
 
@@ -328,7 +327,7 @@ async function run() {
   });
 
   // get all added car
-  app.get("/addedCar/:userId", async (req, res) => {
+  app.get("/addedCar/:userId", verifyToken, async (req, res) => {
     try {
       const { userId } = req.params;
 
