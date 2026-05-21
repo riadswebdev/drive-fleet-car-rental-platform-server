@@ -7,7 +7,15 @@ const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://drive-fleet-car-rental-platform.vercel.app",
+    ],
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 const uri = process.env.MONGODB_URI;
@@ -208,9 +216,10 @@ async function run() {
       const car = await bookingCollection.find({ userId: userId }).toArray();
 
       if (car.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: "booking Car not found",
+        return res.status(200).json({
+          success: true,
+          message: "No booking cars found",
+          data: [],
         });
       }
 
