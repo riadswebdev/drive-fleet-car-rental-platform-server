@@ -67,7 +67,7 @@ async function run() {
   let addedCarCollection;
 
   try {
-    await client.connect();
+    // await client.connect();
     const db = client.db("driveFleetCarRental");
     carsCollection = db.collection("cars");
     bookingCollection = db.collection("booking");
