@@ -125,7 +125,7 @@ async function run() {
   });
 
   // GET SINGLE CAR
-  app.get("/cars/:id", verifyToken, async (req, res) => {
+  app.get("/cars/:id", async (req, res) => {
     try {
       const { id } = req.params;
 
@@ -166,7 +166,7 @@ async function run() {
   });
 
   // BOOK CAR
-  app.post("/car/book", verifyToken, async (req, res) => {
+  app.post("/car/book", async (req, res) => {
     try {
       const bookingData = req.body;
       const { carId } = bookingData;
@@ -199,7 +199,7 @@ async function run() {
   });
 
   // GET ALL BOOKING CARS
-  app.get("/booking/:userId", verifyToken, async (req, res) => {
+  app.get("/booking/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
 
@@ -233,7 +233,7 @@ async function run() {
   });
 
   // delete booking car
-  app.delete("/booking/:carId", verifyToken, async (req, res) => {
+  app.delete("/booking/:carId", async (req, res) => {
     try {
       const { carId } = req.params;
 
@@ -292,7 +292,7 @@ async function run() {
   });
 
   // ADD NEW CAR
-  app.post("/car/add", verifyToken, async (req, res) => {
+  app.post("/car/add", async (req, res) => {
     try {
       const newCar = req.body;
 
@@ -319,7 +319,7 @@ async function run() {
   });
 
   // get all added car
-  app.get("/addedCar/:userId", verifyToken, async (req, res) => {
+  app.get("/addedCar/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
 
@@ -348,7 +348,7 @@ async function run() {
   });
 
   // update my added car
-  app.patch("/updateCar/:carId", verifyToken, async (req, res) => {
+  app.patch("/updateCar/:carId", async (req, res) => {
     try {
       const { carId } = req.params;
       const updateCar = req.body;
@@ -379,7 +379,7 @@ async function run() {
   });
 
   // delete users added car
-  app.delete("/added/:carId", verifyToken, async (req, res) => {
+  app.delete("/added/:carId", async (req, res) => {
     try {
       const { carId } = req.params;
 
