@@ -35,28 +35,58 @@ app.get("/", (req, res) => {
   });
 });
 
+// const verifyToken = async (req, res, next) => {
+//   const bearerToken = req.headers.authorization;
+//   if (!bearerToken) {
+//     return res.status(401).json({ success: false, message: "unauthorize" });
+//   }
+//   const token = bearerToken.split(" ")[1];
+
+//   if (!token) {
+//     return res.status(401).json({ success: false, message: "unauthorize" });
+//   }
+
+//   try {
+//     const JWKS = createRemoteJWKSet(new URL(process.env.JWKS_URI));
+//     const { payload } = await jwtVerify(token, JWKS);
+//     req.user = payload;
+//     next();
+//   } catch (error) {
+//     console.error("Token validation failed", error.message);
+
+//     return res.status(401).json({
+//       success: false,
+//       message: "Invalid token",
+//     });
+//   }
+// };
+
 const verifyToken = async (req, res, next) => {
-  const bearerToken = req.headers.authorization;
-  if (!bearerToken) {
-    return res.status(401).json({ success: false, message: "unauthorize" });
-  }
-  const token = bearerToken.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ success: false, message: "unauthorize" });
-  }
-
   try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized access",
+      });
+    }
+
+    const token = authHeader.split(" ")[1];
+
     const JWKS = createRemoteJWKSet(new URL(process.env.JWKS_URI));
+
     const { payload } = await jwtVerify(token, JWKS);
+
     req.user = payload;
+
     next();
   } catch (error) {
-    console.error("Token validation failed", error.message);
+    console.error("Token validation failed:", error.message);
 
     return res.status(401).json({
       success: false,
-      message: "Invalid token",
+      message: "Invalid or expired token",
     });
   }
 };
@@ -206,7 +236,7 @@ async function run() {
   });
 
   // GET ALL BOOKING CARS
-  app.get("/booking/:userId",  async (req, res) => {
+  app.get("/booking/:userId", verifyToken, async (req, res) => {
     try {
       const { userId } = req.params;
 
@@ -300,7 +330,7 @@ async function run() {
   });
 
   // ADD NEW CAR
-  app.post("/car/add",  async (req, res) => {
+  app.post("/car/add",verifyToken,  async (req, res) => {
     try {
       const newCar = req.body;
 
@@ -327,7 +357,7 @@ async function run() {
   });
 
   // get all added car
-  app.get("/addedCar/:userId",  async (req, res) => {
+  app.get("/addedCar/:userId",verifyToken,  async (req, res) => {
     try {
       const { userId } = req.params;
 
